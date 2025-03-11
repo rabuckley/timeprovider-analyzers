@@ -1,0 +1,9 @@
+<Project>
+    <PropertyGroup>
+        <Nullable>enable</Nullable>
+        <WarningsAsErrors>nullable</WarningsAsErrors>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <LangVersion>preview</LangVersion>
+        <AnalysisLevel>preview</AnalysisLevel>
+    </PropertyGroup>
+</Project>

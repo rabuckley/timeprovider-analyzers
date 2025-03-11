@@ -1,0 +1,53 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{BC8B6DD9-B845-4CCB-AC84-B9890EFA05E0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeProviderAnalyzers", "src\TimeProviderAnalyzers\TimeProviderAnalyzers.csproj", "{4E15BB22-6EC0-4AC5-8756-64F0A8405E5F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeProviderAnalyzers.CodeFixes", "src\TimeProviderAnalyzers.CodeFixes\TimeProviderAnalyzers.CodeFixes.csproj", "{7C4DB41F-2816-4CF4-A229-74197FD47AEB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeProviderAnalyzers.Tests", "tests\TimeProviderAnalyzers.Test\TimeProviderAnalyzers.Tests.csproj", "{0290836F-2C1F-438C-9E1B-1BCE6C561CA3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeProviderAnalyzers.IntegrationTests", "tests\TimeProviderAnalyzers.IntegrationTests\TimeProviderAnalyzers.IntegrationTests.csproj", "{79E566F9-6C80-48C4-AF6E-660E9DF5C997}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4E15BB22-6EC0-4AC5-8756-64F0A8405E5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E15BB22-6EC0-4AC5-8756-64F0A8405E5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E15BB22-6EC0-4AC5-8756-64F0A8405E5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E15BB22-6EC0-4AC5-8756-64F0A8405E5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C4DB41F-2816-4CF4-A229-74197FD47AEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C4DB41F-2816-4CF4-A229-74197FD47AEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C4DB41F-2816-4CF4-A229-74197FD47AEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C4DB41F-2816-4CF4-A229-74197FD47AEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0290836F-2C1F-438C-9E1B-1BCE6C561CA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0290836F-2C1F-438C-9E1B-1BCE6C561CA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0290836F-2C1F-438C-9E1B-1BCE6C561CA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0290836F-2C1F-438C-9E1B-1BCE6C561CA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79E566F9-6C80-48C4-AF6E-660E9DF5C997}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79E566F9-6C80-48C4-AF6E-660E9DF5C997}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79E566F9-6C80-48C4-AF6E-660E9DF5C997}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79E566F9-6C80-48C4-AF6E-660E9DF5C997}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4E15BB22-6EC0-4AC5-8756-64F0A8405E5F} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{7C4DB41F-2816-4CF4-A229-74197FD47AEB} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{0290836F-2C1F-438C-9E1B-1BCE6C561CA3} = {BC8B6DD9-B845-4CCB-AC84-B9890EFA05E0}
+		{79E566F9-6C80-48C4-AF6E-660E9DF5C997} = {BC8B6DD9-B845-4CCB-AC84-B9890EFA05E0}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {76A733C5-9859-4045-BE1A-965B55C1B26A}
+	EndGlobalSection
+EndGlobal
