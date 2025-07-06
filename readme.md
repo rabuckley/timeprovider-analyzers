@@ -6,6 +6,8 @@ A set of .NET analyzers enforcing usage of `TimeProvider`.
 
 ### `TPA0001`: Use TimeProvider instead of static property to access date and time information
 
+Defaults to Information severity.
+
 ```cs
 public void DoSomething()
 {
@@ -14,6 +16,8 @@ public void DoSomething()
 ```
 
 ### `TPA0002`: Use the available TimeProvider instead of a static property to access date and time information
+
+Defaults to Warning severity.
 
 ```cs
 public sealed class MyService(TimeProvider timeProvider)
