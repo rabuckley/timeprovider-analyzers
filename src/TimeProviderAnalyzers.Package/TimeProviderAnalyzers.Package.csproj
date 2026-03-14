@@ -11,14 +11,13 @@
     <PackageId>TimeProviderAnalyzers</PackageId>
     <PackageVersion>1.0.0.0</PackageVersion>
     <Authors>ryan</Authors>
-    <PackageLicenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</PackageLicenseUrl>
-    <PackageProjectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</PackageProjectUrl>
-    <PackageIconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</PackageIconUrl>
-    <RepositoryUrl>http://REPOSITORY_URL_HERE_OR_DELETE_THIS_LINE</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/rabuckley/timeprovider-analyzers</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/rabuckley/timeprovider-analyzers.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Description>TimeProviderAnalyzers</Description>
-    <PackageReleaseNotes>Summary of changes made in this release of the package.</PackageReleaseNotes>
-    <Copyright>Copyright</Copyright>
+    <Description>Roslyn analyzers that encourage use of TimeProvider over static date/time properties like DateTime.Now and DateTimeOffset.UtcNow.</Description>
+    <Copyright>Copyright (c) Ryan Buckley</Copyright>
     <PackageTags>TimeProviderAnalyzers, analyzers</PackageTags>
     <DevelopmentDependency>true</DevelopmentDependency>
     <NoPackageAnalysis>true</NoPackageAnalysis>
