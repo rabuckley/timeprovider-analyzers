@@ -54,6 +54,11 @@ public class TimeProviderAnalyzersAnalyzer : DiagnosticAnalyzer
         compilationContext.RegisterSyntaxNodeAction(
             context => AnalyzeMemberAccess(context, symbols),
             SyntaxKind.SimpleMemberAccessExpression);
+
+        compilationContext.RegisterSyntaxNodeAction(
+            context => AnalyzeInvocation(context, symbols),
+            SyntaxKind.InvocationExpression,
+            SyntaxKind.ObjectCreationExpression);
     }
 
     private static void AnalyzeMemberAccess(
@@ -90,6 +95,145 @@ public class TimeProviderAnalyzersAnalyzer : DiagnosticAnalyzer
         });
     }
 
+    private static void AnalyzeInvocation(
+        SyntaxNodeAnalysisContext context,
+        TargetSymbols symbols)
+    {
+        var semanticModel = context.SemanticModel;
+        var symbolInfo = semanticModel.GetSymbolInfo(context.Node);
+
+        if (symbolInfo.Symbol is not IMethodSymbol calledMethod)
+        {
+            return;
+        }
+
+        // Skip if the method already has a TimeProvider parameter — the caller is already using the right overload.
+        if (calledMethod.Parameters.Any(p => IsTimeProviderType(p.Type, symbols.TimeProviderSymbol)))
+        {
+            return;
+        }
+
+        if (!HasOverloadWithTimeProvider(calledMethod, symbols.TimeProviderSymbol,
+                out int timeProviderParameterIndex, out string timeProviderParameterName))
+        {
+            return;
+        }
+
+        var expression = (ExpressionSyntax)context.Node;
+
+        if (!TryGetAccessibleTimeProvider(semanticModel, symbols.TimeProviderSymbol, expression,
+                out string? timeProviderName))
+        {
+            return;
+        }
+
+        // Format the method name as "Type.Method" for regular methods or "Type" for constructors.
+        var containingTypeName = calledMethod.ContainingType.Name;
+        var methodDisplayName = calledMethod.MethodKind is MethodKind.Constructor
+            ? $"{containingTypeName}"
+            : $"{containingTypeName}.{calledMethod.Name}";
+
+        ReportDiagnostic(context, new PassTimeProviderAnalyzerContext
+        {
+            TimeProviderName = timeProviderName!,
+            MethodName = methodDisplayName,
+            TimeProviderParameterIndex = timeProviderParameterIndex,
+            TimeProviderParameterName = timeProviderParameterName,
+            Location = context.Node.GetLocation()
+        });
+    }
+
+    /// <summary>
+    /// Checks whether the called method's containing type has an overload with the same parameters
+    /// plus one additional <see cref="TimeProvider"/> parameter.
+    /// </summary>
+    private static bool HasOverloadWithTimeProvider(
+        IMethodSymbol calledMethod,
+        INamedTypeSymbol timeProviderSymbol,
+        out int timeProviderParameterIndex,
+        out string timeProviderParameterName)
+    {
+        var containingType = calledMethod.ContainingType;
+        var calledParams = calledMethod.Parameters;
+
+        var candidateMethods = calledMethod.MethodKind is MethodKind.Constructor
+            ? containingType.InstanceConstructors.Cast<IMethodSymbol>()
+            : containingType.GetMembers(calledMethod.Name).OfType<IMethodSymbol>();
+
+        foreach (var candidate in candidateMethods)
+        {
+            if (SymbolEqualityComparer.Default.Equals(candidate, calledMethod))
+            {
+                continue;
+            }
+
+            // Look for an overload that has exactly one more parameter than the called method,
+            // where all existing parameters match in order and the extra one is a TimeProvider.
+            if (candidate.Parameters.Length != calledParams.Length + 1)
+            {
+                continue;
+            }
+
+            if (IsOverloadWithExtraTimeProvider(calledParams, candidate.Parameters, timeProviderSymbol,
+                    out int index))
+            {
+                timeProviderParameterIndex = index;
+                timeProviderParameterName = candidate.Parameters[index].Name;
+                return true;
+            }
+        }
+
+        timeProviderParameterIndex = -1;
+        timeProviderParameterName = "";
+        return false;
+    }
+
+    /// <summary>
+    /// Returns true when <paramref name="candidateParams"/> contains all of <paramref name="originalParams"/>
+    /// in order, plus exactly one additional parameter whose type is assignable to <see cref="TimeProvider"/>.
+    /// The extra parameter can appear at any position.
+    /// </summary>
+    /// <summary>
+    /// Returns true when <paramref name="candidateParams"/> contains all of <paramref name="originalParams"/>
+    /// in order, plus exactly one additional parameter whose type is assignable to <see cref="TimeProvider"/>.
+    /// The extra parameter can appear at any position. Its index is returned via <paramref name="timeProviderIndex"/>.
+    /// </summary>
+    private static bool IsOverloadWithExtraTimeProvider(
+        ImmutableArray<IParameterSymbol> originalParams,
+        ImmutableArray<IParameterSymbol> candidateParams,
+        INamedTypeSymbol timeProviderSymbol,
+        out int timeProviderIndex)
+    {
+        int originalIndex = 0;
+        timeProviderIndex = -1;
+
+        for (int i = 0; i < candidateParams.Length; i++)
+        {
+            if (timeProviderIndex < 0 && IsTimeProviderType(candidateParams[i].Type, timeProviderSymbol))
+            {
+                timeProviderIndex = i;
+                continue;
+            }
+
+            if (originalIndex >= originalParams.Length)
+            {
+                timeProviderIndex = -1;
+                return false;
+            }
+
+            if (!SymbolEqualityComparer.Default.Equals(
+                    candidateParams[i].Type, originalParams[originalIndex].Type))
+            {
+                timeProviderIndex = -1;
+                return false;
+            }
+
+            originalIndex++;
+        }
+
+        return timeProviderIndex >= 0 && originalIndex == originalParams.Length;
+    }
+
     private static bool SymbolIsStaticAccessTarget(TargetSymbols symbols, IPropertySymbol propertySymbol)
     {
         if (SymbolEqualityComparer.Default.Equals(propertySymbol.ContainingType, symbols.DateTimeSymbol)
@@ -99,7 +243,7 @@ public class TimeProviderAnalyzersAnalyzer : DiagnosticAnalyzer
         }
 
         if (SymbolEqualityComparer.Default.Equals(propertySymbol.ContainingType, symbols.DateTimeOffsetSymbol)
-            || TargetPropertyNames.DateTimeOffsetPropertyNames.Contains(propertySymbol.Name))
+            && TargetPropertyNames.DateTimeOffsetPropertyNames.Contains(propertySymbol.Name))
         {
             return true;
         }
@@ -114,12 +258,26 @@ public class TimeProviderAnalyzersAnalyzer : DiagnosticAnalyzer
             UseOfStaticTimeWithTimeProviderInScopeAnalyzerContext c => Diagnostic.Create(
                 Rules.UseOfStaticTimeWithTimeProviderInScopeDescriptor,
                 c.Location,
+                properties: ImmutableDictionary<string, string?>.Empty
+                    .Add("TimeProviderName", c.TimeProviderName)
+                    .Add("PropertyName", c.PropertyName),
                 c.TimeProviderName,
                 c.PropertyName),
             UseOfStaticTimeAnalyzerContext c => Diagnostic.Create(
                 Rules.UseOfStaticTimeDescriptor,
                 c.Location,
+                properties: ImmutableDictionary<string, string?>.Empty
+                    .Add("PropertyName", c.PropertyName),
                 c.PropertyName),
+            PassTimeProviderAnalyzerContext c => Diagnostic.Create(
+                Rules.PassTimeProviderDescriptor,
+                c.Location,
+                properties: ImmutableDictionary<string, string?>.Empty
+                    .Add("TimeProviderName", c.TimeProviderName)
+                    .Add("TimeProviderParameterIndex", c.TimeProviderParameterIndex.ToString())
+                    .Add("TimeProviderParameterName", c.TimeProviderParameterName),
+                c.TimeProviderName,
+                c.MethodName),
             _ => null
         };
 

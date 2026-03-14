@@ -16,3 +16,11 @@ internal sealed record UseOfStaticTimeWithTimeProviderInScopeAnalyzerContext : U
 {
     public required string TimeProviderName { get; init; }
 }
+
+internal sealed record PassTimeProviderAnalyzerContext : AnalyzerContext
+{
+    public required string TimeProviderName { get; init; }
+    public required string MethodName { get; init; }
+    public required int TimeProviderParameterIndex { get; init; }
+    public required string TimeProviderParameterName { get; init; }
+}

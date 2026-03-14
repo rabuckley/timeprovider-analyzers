@@ -409,4 +409,132 @@ public sealed class TimeProviderAnalyzersUnitTest
 
         await context.RunAsync(TestContext.Current.CancellationToken).ConfigureAwait(true);
     }
+
+    /// <summary>
+    /// Maps a (DateType, DateTypeProperty) pair to the expected TimeProvider replacement expression.
+    /// </summary>
+    private static string GetExpectedReplacement(string timeProviderName, DateType dateType, DateTypeProperty property)
+    {
+        return (dateType, property) switch
+        {
+            (DateType.DateTime, DateTypeProperty.Now) => $"{timeProviderName}.GetLocalNow().DateTime",
+            (DateType.DateTime, DateTypeProperty.UtcNow) => $"{timeProviderName}.GetUtcNow().DateTime",
+            (DateType.DateTime, DateTypeProperty.Today) => $"{timeProviderName}.GetLocalNow().Date",
+            (DateType.DateTimeOffset, DateTypeProperty.Now) => $"{timeProviderName}.GetLocalNow()",
+            (DateType.DateTimeOffset, DateTypeProperty.UtcNow) => $"{timeProviderName}.GetUtcNow()",
+            _ => throw new ArgumentException($"Unsupported combination: {dateType}.{property}")
+        };
+    }
+
+    [Theory]
+    [MemberData(nameof(DateTypePropertyData))]
+    public async Task CodeFix_WithTimeProviderParameter(
+        DateType dateType,
+        DateTypeProperty dateTypeProperty)
+    {
+        var dateTypeString = DateTypeFormatter.Format(dateType);
+        var accessorNameString = DateTypePropertyFormatter.Format(dateTypeProperty);
+        var replacement = GetExpectedReplacement("timeProvider", dateType, dateTypeProperty);
+
+        /* lang=c# */
+        var test =
+            $$"""
+              using System;
+
+              namespace ConsoleApplication1
+              {
+                  class SomeClass
+                  {
+                      public static {{dateTypeString}} GetNow(TimeProvider timeProvider)
+                      {
+                          return {|TPA0002:{{dateTypeString}}.{{accessorNameString}}|};
+                      }
+                  }
+              }
+              """;
+
+        /* lang=c# */
+        var fixedSource =
+            $$"""
+              using System;
+
+              namespace ConsoleApplication1
+              {
+                  class SomeClass
+                  {
+                      public static {{dateTypeString}} GetNow(TimeProvider timeProvider)
+                      {
+                          return {{replacement}};
+                      }
+                  }
+              }
+              """;
+
+        var context = new VerifyCS.Test
+        {
+            TestCode = test,
+            FixedCode = fixedSource,
+            ReferenceAssemblies = TargetReferenceAssemblies.Net9,
+        };
+
+        await context.RunAsync(TestContext.Current.CancellationToken).ConfigureAwait(true);
+    }
+
+    [Theory]
+    [MemberData(nameof(DateTypePropertyData))]
+    public async Task CodeFix_WithInstanceField(
+        DateType dateType,
+        DateTypeProperty dateTypeProperty)
+    {
+        var dateTypeString = DateTypeFormatter.Format(dateType);
+        var accessorNameString = DateTypePropertyFormatter.Format(dateTypeProperty);
+        var replacement = GetExpectedReplacement("_timeProvider", dateType, dateTypeProperty);
+
+        /* lang=c# */
+        var test =
+            $$"""
+              using System;
+
+              namespace ConsoleApplication1
+              {
+                  class SomeClass
+                  {
+                      private TimeProvider _timeProvider = TimeProvider.System;
+
+                      public {{dateTypeString}} GetNow()
+                      {
+                          return {|TPA0002:{{dateTypeString}}.{{accessorNameString}}|};
+                      }
+                  }
+              }
+              """;
+
+        /* lang=c# */
+        var fixedSource =
+            $$"""
+              using System;
+
+              namespace ConsoleApplication1
+              {
+                  class SomeClass
+                  {
+                      private TimeProvider _timeProvider = TimeProvider.System;
+
+                      public {{dateTypeString}} GetNow()
+                      {
+                          return {{replacement}};
+                      }
+                  }
+              }
+              """;
+
+        var context = new VerifyCS.Test
+        {
+            TestCode = test,
+            FixedCode = fixedSource,
+            ReferenceAssemblies = TargetReferenceAssemblies.Net9,
+        };
+
+        await context.RunAsync(TestContext.Current.CancellationToken).ConfigureAwait(true);
+    }
 }

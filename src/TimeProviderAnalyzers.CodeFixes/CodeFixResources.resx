@@ -121,4 +121,12 @@
     <value>Use TimeProvider instead</value>
     <comment>The title of the code fix.</comment>
   </data>
+  <data name="PassTimeProviderCodeFixTitle" xml:space="preserve">
+    <value>Pass TimeProvider to method</value>
+    <comment>The title of the TPA0003 code fix.</comment>
+  </data>
+  <data name="AddTimeProviderParameterCodeFixTitle" xml:space="preserve">
+    <value>Add TimeProvider parameter and use it</value>
+    <comment>The title of the TPA0001 code fix that adds a TimeProvider parameter to the enclosing method.</comment>
+  </data>
 </root>

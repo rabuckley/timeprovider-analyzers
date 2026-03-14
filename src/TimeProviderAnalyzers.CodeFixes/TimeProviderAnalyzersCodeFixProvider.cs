@@ -1,12 +1,10 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Rename;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,10 +17,7 @@ public class TimeProviderAnalyzersCodeFixProvider : CodeFixProvider
         => ImmutableArray.Create(Rules.UseOfStaticTimeWithTimeProviderInScopeDescriptor.Id);
 
     public sealed override FixAllProvider GetFixAllProvider()
-    {
-        // See https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for more information on Fix All Providers
-        return WellKnownFixAllProviders.BatchFixer;
-    }
+        => WellKnownFixAllProviders.BatchFixer;
 
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -31,48 +26,48 @@ public class TimeProviderAnalyzersCodeFixProvider : CodeFixProvider
         if (root is null)
             return;
 
-        var diagnostic = context.Diagnostics.First();
+        var diagnostic = context.Diagnostics[0];
         var diagnosticSpan = diagnostic.Location.SourceSpan;
 
-        // Find the type declaration identified by the diagnostic.
-        var declaration = root.FindToken(diagnosticSpan.Start)
-            .Parent?.AncestorsAndSelf()
-            .OfType<TypeDeclarationSyntax>()
-            .First();
+        var node = root.FindNode(diagnosticSpan);
 
-        // No `Parent`
-        if (declaration is null)
+        if (node is not MemberAccessExpressionSyntax memberAccess)
             return;
 
-        // Register a code action that will invoke the fix.
+        var timeProviderName = diagnostic.Properties.GetValueOrDefault("TimeProviderName");
+        var propertyName = diagnostic.Properties.GetValueOrDefault("PropertyName");
+
+        if (timeProviderName is null || propertyName is null)
+            return;
+
+        if (!TimeProviderReplacements.Expressions.ContainsKey(propertyName))
+            return;
+
         context.RegisterCodeFix(
             CodeAction.Create(
                 title: CodeFixResources.CodeFixTitle,
-                createChangedSolution: c => MakeUppercaseAsync(context.Document, declaration, c),
+                createChangedDocument: ct => ReplaceWithTimeProviderCallAsync(
+                    context.Document, memberAccess, timeProviderName, propertyName, ct),
                 equivalenceKey: nameof(CodeFixResources.CodeFixTitle)),
             diagnostic);
     }
 
-    private async Task<Solution> MakeUppercaseAsync(
+    private static async Task<Document> ReplaceWithTimeProviderCallAsync(
         Document document,
-        TypeDeclarationSyntax typeDecl,
+        MemberAccessExpressionSyntax memberAccess,
+        string timeProviderName,
+        string propertyName,
         CancellationToken cancellationToken)
     {
-        // Compute new uppercase name.
-        var identifierToken = typeDecl.Identifier;
-        var newName = identifierToken.Text.ToUpperInvariant();
+        var replacementTemplate = TimeProviderReplacements.Expressions[propertyName];
+        var replacementText = replacementTemplate.Replace("{0}", timeProviderName);
 
-        // Get the symbol representing the type to be renamed.
-        var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
-        var typeSymbol = semanticModel.GetDeclaredSymbol(typeDecl, cancellationToken)!;
+        var replacementExpression = SyntaxFactory.ParseExpression(replacementText)
+            .WithTriviaFrom(memberAccess);
 
-        var renameOptions = new SymbolRenameOptions();
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var newRoot = root!.ReplaceNode(memberAccess, replacementExpression);
 
-        var sln = await Renamer
-            .RenameSymbolAsync(document.Project.Solution, typeSymbol, renameOptions, newName, cancellationToken)
-            .ConfigureAwait(false);
-
-        // Return the new solution with the now-uppercase type name.
-        return sln;
+        return document.WithSyntaxRoot(newRoot);
     }
 }

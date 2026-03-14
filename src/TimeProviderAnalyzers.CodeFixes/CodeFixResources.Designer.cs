@@ -79,5 +79,27 @@ namespace TimeProviderAnalyzers
                 return ResourceManager.GetString("CodeFixTitle", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Add TimeProvider parameter and use it.
+        /// </summary>
+        internal static string AddTimeProviderParameterCodeFixTitle
+        {
+            get
+            {
+                return ResourceManager.GetString("AddTimeProviderParameterCodeFixTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pass TimeProvider to method.
+        /// </summary>
+        internal static string PassTimeProviderCodeFixTitle
+        {
+            get
+            {
+                return ResourceManager.GetString("PassTimeProviderCodeFixTitle", resourceCulture);
+            }
+        }
     }
 }
