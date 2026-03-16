@@ -87,7 +87,7 @@ Task.Delay(TimeSpan.FromSeconds(1), timeProvider);
 | Static property | TimeProvider equivalent |
 |---|---|
 | `DateTime.Now` | `timeProvider.GetLocalNow().DateTime` |
-| `DateTime.UtcNow` | `timeProvider.GetUtcNow().DateTime` |
+| `DateTime.UtcNow` | `timeProvider.GetUtcNow().UtcDateTime` |
 | `DateTime.Today` | `timeProvider.GetLocalNow().Date` |
 | `DateTimeOffset.Now` | `timeProvider.GetLocalNow()` |
 | `DateTimeOffset.UtcNow` | `timeProvider.GetUtcNow()` |

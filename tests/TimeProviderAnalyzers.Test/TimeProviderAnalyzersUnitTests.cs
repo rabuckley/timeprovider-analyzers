@@ -418,7 +418,7 @@ public sealed class TimeProviderAnalyzersUnitTest
         return (dateType, property) switch
         {
             (DateType.DateTime, DateTypeProperty.Now) => $"{timeProviderName}.GetLocalNow().DateTime",
-            (DateType.DateTime, DateTypeProperty.UtcNow) => $"{timeProviderName}.GetUtcNow().DateTime",
+            (DateType.DateTime, DateTypeProperty.UtcNow) => $"{timeProviderName}.GetUtcNow().UtcDateTime",
             (DateType.DateTime, DateTypeProperty.Today) => $"{timeProviderName}.GetLocalNow().Date",
             (DateType.DateTimeOffset, DateTypeProperty.Now) => $"{timeProviderName}.GetLocalNow()",
             (DateType.DateTimeOffset, DateTypeProperty.UtcNow) => $"{timeProviderName}.GetUtcNow()",

@@ -125,7 +125,7 @@ public sealed class TPA0001CodeFixTests
 
                 public MyClass(TimeProvider timeProvider)
                 {
-                    _created = timeProvider.GetUtcNow().DateTime;
+                    _created = timeProvider.GetUtcNow().UtcDateTime;
                 }
             }
             """;
@@ -180,7 +180,7 @@ public sealed class TPA0001CodeFixTests
         return (dateType, property) switch
         {
             (DateType.DateTime, DateTypeProperty.Now) => $"{timeProviderName}.GetLocalNow().DateTime",
-            (DateType.DateTime, DateTypeProperty.UtcNow) => $"{timeProviderName}.GetUtcNow().DateTime",
+            (DateType.DateTime, DateTypeProperty.UtcNow) => $"{timeProviderName}.GetUtcNow().UtcDateTime",
             (DateType.DateTime, DateTypeProperty.Today) => $"{timeProviderName}.GetLocalNow().Date",
             (DateType.DateTimeOffset, DateTypeProperty.Now) => $"{timeProviderName}.GetLocalNow()",
             (DateType.DateTimeOffset, DateTypeProperty.UtcNow) => $"{timeProviderName}.GetUtcNow()",

@@ -11,7 +11,7 @@ internal static class TimeProviderReplacements
     public static readonly ImmutableDictionary<string, string> Expressions =
         ImmutableDictionary<string, string>.Empty
             .Add("DateTime.Now", "{0}.GetLocalNow().DateTime")
-            .Add("DateTime.UtcNow", "{0}.GetUtcNow().DateTime")
+            .Add("DateTime.UtcNow", "{0}.GetUtcNow().UtcDateTime")
             .Add("DateTime.Today", "{0}.GetLocalNow().Date")
             .Add("DateTimeOffset.Now", "{0}.GetLocalNow()")
             .Add("DateTimeOffset.UtcNow", "{0}.GetUtcNow()");
